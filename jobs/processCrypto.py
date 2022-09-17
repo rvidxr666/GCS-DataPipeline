@@ -53,24 +53,6 @@ schema_day = StructType([ \
 def most_popular_network(df):
     df.registerTempTable("crypto_prices")   
 
-    # spark.sql(
-    #     '''
-    #     SELECT COUNT(*)
-    #     FROM crypto_prices
-    #     WHERE Date='2022-09-17'
-    #     '''
-    # ).show()
-
-
-    # spark.sql(
-    #     '''
-    #     SELECT COUNT(*)
-    #     FROM crypto_prices
-    #     WHERE Date='2022-09-14'
-    #     '''
-    # ).show()
-
-
     # Per week 
     return spark.sql(
     '''
@@ -107,18 +89,18 @@ def extract_data_for_last_week(sparkDf, last_week_days = list_of_last_week_dates
     return df
 
 
-def count_price_change(grouped_df):
+def count_price_change(grouped_df, calculation_var="Network"):
     counted_df = pd.DataFrame(columns=grouped_df.columns)
-    unique_networks = grouped_df.Network.unique()
+    unique_networks = grouped_df[calculation_var].unique()
 
     for net in unique_networks:
-        net_df = grouped_df[grouped_df["Network"] == net].reset_index(drop=True)
+        net_df = grouped_df[grouped_df[calculation_var] == net].reset_index(drop=True)
         net_df["PercentageChange"] = None
         net_df["PriceDiff"] = None
 
         for tup in net_df.itertuples():
             curr_tup_index = tup.Index
-            print(curr_tup_index)
+            # print(curr_tup_index)
             if curr_tup_index == 0:
                 net_df.loc[curr_tup_index, "PercentageChange"] = None
                 net_df.loc[curr_tup_index,"PriceDiff"] = None
@@ -128,9 +110,9 @@ def count_price_change(grouped_df):
             percentage = (tup.Price / prev_tup_price - 1) * 100
             net_df.loc[curr_tup_index, "PercentageChange"] = percentage
             net_df.loc[curr_tup_index, "PriceDiff"] = tup.Price - prev_tup_price
-            print(prev_tup_price)
+            # print(prev_tup_price)
         counted_df = pd.concat([counted_df, net_df])
-        print(net_df)
+        # print(net_df)
     
     # Dataframe can be empty because of the lack of data for the current day
     if not counted_df.empty:
@@ -139,21 +121,21 @@ def count_price_change(grouped_df):
 
     return counted_df
 
-
-def count_price_change_driver(df):
-    grouped_df_by_date = df.groupby(["Date", "Network"])\
+def count_price_change_driver(df, group_by="Network"):
+    # CHECK
+    grouped_df_by_date = df.groupby(["Date", group_by])\
                     .mean("Price")["Price"]\
                     .reset_index()
 
-    grouped_df_by_hour = df.groupby(["Date", "Hour", "Network"])\
+    grouped_df_by_hour = df.groupby(["Date", "Hour", group_by])\
                     .mean("Price")["Price"]\
                     .reset_index()
 
     grouped_df_last_hour = grouped_df_by_hour[grouped_df_by_hour["Date"] == dt.date.today()]\
                                     .reset_index(drop=True)
 
-    last_hour_price_change = count_price_change(grouped_df_last_hour)
-    last_week_price_change = count_price_change(grouped_df_by_date)
+    last_hour_price_change = count_price_change(grouped_df_last_hour, calculation_var=group_by)
+    last_week_price_change = count_price_change(grouped_df_by_date, calculation_var=group_by)
     return last_hour_price_change, last_week_price_change
 
 
@@ -163,37 +145,43 @@ def count_networks_weekly(df):
     return df_grouped
 
 
-def write_to_parquet(df, destination, partition_by):
+def write_to_parquet(df, destination):
     df.write.option("header",True) \
         .mode("overwrite") \
         .parquet(destination)
 
 
 def process_json_files():
-    cryptoDF = spark.read.json(f"{SOURCE_BUCKET}/data/*")\
+    cryptoDF = spark.read.json(f"/mnt/c/Random Projects/gcp-pipeline/data-landing/*")\
         .withColumn("Time", to_timestamp(col("Time"),"dd-MM-yyyy HH:mm:ss"))\
         .withColumn("Time", date_trunc("hour", "Time"))
 
     last_week_df_for_diff = extract_data_for_last_week(cryptoDF)
     last_hour_price_change, last_week_price_change = count_price_change_driver(last_week_df_for_diff)
+    last_hour_price_change_coin, last_week_price_change_coin = count_price_change_driver(last_week_df_for_diff, group_by="Name")
 
     last_week_list_for_sum = list_of_last_week_dates(days = 8)
     last_week_df_for_sum = extract_data_for_last_week(cryptoDF, last_week_list_for_sum)
     df_for_sum_net_spark = count_networks_weekly(last_week_df_for_sum)
 
-    # print(last_hour_price_change)
     last_hours_price_change_spark = spark.createDataFrame(last_hour_price_change, schema=schema_day).repartition(4)
     last_days_price_change_spark = spark.createDataFrame(last_week_price_change, schema=schema_week).repartition(4)
-    last_hours_price_change_spark.where(last_hours_price_change_spark.Network=="Ethereum").show()
-    # # write_to_parquet(df_for_sum_net_spark, f"{TARGET_BUCKET}/summarize", "Network")
-    # write_to_parquet(last_days_price_change_spark, f"{TARGET_BUCKET}/days", "Network")
-    # write_to_parquet(last_hours_price_change_spark, f"{TARGET_BUCKET}/hours", "Network")
-    # last_days_price_change_spark.show()
+
+    last_hour_price_change_coin_spark = spark.createDataFrame(last_hour_price_change_coin).repartition(4)
+    last_week_price_change_coin_spark = spark.createDataFrame(last_week_price_change_coin).repartition(4)
+
+    write_to_parquet(df_for_sum_net_spark, f"{TARGET_BUCKET}/summarize_net")
+    write_to_parquet(last_days_price_change_spark, f"{TARGET_BUCKET}/days_net")
+    write_to_parquet(last_hours_price_change_spark, f"{TARGET_BUCKET}/hours_net")
+
+    write_to_parquet(last_week_price_change_coin_spark, f"{TARGET_BUCKET}/days_coin")
+    write_to_parquet(last_hour_price_change_coin_spark, f"{TARGET_BUCKET}/hours_coin")
 
 
 
 def arg_parser():
     parser = argparse.ArgumentParser(description="Args to run the job")
+
     parser.add_argument("--source-bucket", required=True)
     parser.add_argument("--target-bucket", required=True)
     parser.add_argument("--project", required=True)

@@ -4,3 +4,4 @@ google_credentials.json
 venv
 *.parquet
 *.parquet.crc
+*.json

@@ -14,11 +14,13 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 
 public class Scraper {
     String url;
     int pagesCount;
     ArrayList<HashMap<String, Object>> finalList;
+    LocalDateTime testDate;
 
     public Scraper(){
         this.url = "https://coinmarketcap.com";
@@ -26,19 +28,27 @@ public class Scraper {
         this.finalList = new ArrayList<>();
     }
 
-    public Scraper(String url, int pagesCount){
+    public Scraper(LocalDateTime testDate){
+        this.url = "https://coinmarketcap.com";
+        this.pagesCount = 5;
+        this.finalList = new ArrayList<>();
+        this.testDate = testDate;
+    }
+
+    public Scraper(String url, int pagesCount, LocalDateTime testDate){
         this.url = url;
         this.pagesCount = pagesCount;
         this.finalList = new ArrayList<>();
+        this.testDate = testDate;
     }
 
-    public ArrayList<HashMap<String, Object>> Parsing() throws IOException {
+    public ArrayList<HashMap<String, Object>> Parsing() throws IOException, InterruptedException {
         String url = this.url;
         int count = 1;
         HashMap<String, HashMap<String, Object>> finalMap = new HashMap<>();
         while (count <= this.pagesCount) {
 
-            Document document = Jsoup.connect(url).get();
+            Document document = this.Connect(url);
             Elements elems = document.select("a[href^=\"/currencies\"]");
 
             for (Element elem : elems) {
@@ -60,15 +70,27 @@ public class Scraper {
         return this.finalList;
     }
 
+    public Document Connect(String url) throws IOException, InterruptedException {
+        while (true) {
+            try {
+                Document document = Jsoup.connect(url).get();
+                return document;
+
+            } catch (HttpStatusException e) {
+                TimeUnit.MINUTES.sleep(1);
+            }
+        }
+    }
 
     private void Scroll() {
         System.setProperty("webdriver.chrome.driver", "C:\\chromedriver.exe");
         WebDriver driver=new ChromeDriver();
     }
 
-    private void extractData(String url) throws IOException {
+    private void extractData(String url) throws IOException, InterruptedException {
         HashMap<String, Object> coinData = new HashMap<>();
-        Document document = Jsoup.connect(url).get();
+//        Document document = Jsoup.connect(url).get();
+        Document document = this.Connect(url);
         String name = document.select("h2[class=\"sc-1q9q90x-0 jCInrl h1\"]").get(0).ownText();
 
         coinData.put("Name", name);
@@ -97,7 +119,9 @@ public class Scraper {
         System.out.println(name);
         coinData.put("MarketCap", volumeProcessing(marketCap.ownText()));
         coinData.put("Volume", volumeProcessing(volume.ownText()));
-        coinData.put("Time", this.getCurrentDate());
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+        coinData.put("Time", this.testDate.format(formatter));
         this.finalList.add(coinData);
     }
 
