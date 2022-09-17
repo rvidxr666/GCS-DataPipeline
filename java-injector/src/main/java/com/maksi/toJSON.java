@@ -13,13 +13,8 @@ import java.util.HashMap;
 
 public class toJSON {
 
-    public static String writeToJson(ArrayList<HashMap<String, Object>> data, String path) throws IOException {
-//        File jsonFile = new File(path);
-//        Boolean status = jsonFile.createNewFile();
-//        FileWriter fileWriter = new FileWriter(path);
-//        fileWriter.write(new JSONArray(data).toString());
+    public static String writeToJson(ArrayList<HashMap<String, Object>> data) throws IOException {
         String jsonObject = new JSONArray(data).toString();
-//        fileWriter.flush();
         return jsonObject;
     }
 

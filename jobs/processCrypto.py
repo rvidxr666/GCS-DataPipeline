@@ -1,4 +1,6 @@
 import pandas as pd
+import argparse
+import sys
 
 import pyspark
 from pyspark.sql import SparkSession
@@ -8,11 +10,24 @@ from pyspark.sql.types import StructType, StructField, StringType, IntegerType, 
 
 import datetime as dt
 
+PROJECT = ""
+SOURCE_BUCKET = ""
+TARGET_BUCKET = ""
+
+conf = pyspark.SparkConf().setAll([
+                                   ("fs.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem"),
+                                   ("fs.AbstractFileSystem.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS"),
+                                   ("fs.gs.project.id",f"{PROJECT}"),
+                                   ("fs.gs.auth.service.account.enable", "true"),
+                                   ("fs.gs.auth.service.account.json.keyfile", "/home/maksi/.google/credentials/google_credentials.json")                                   
+                                ])
+
+
 spark = SparkSession.builder \
+    .config(conf=conf)\
     .master("local[*]") \
     .appName("test") \
     .getOrCreate()
-
 
 
 schema_week = StructType([ \
@@ -35,20 +50,40 @@ schema_day = StructType([ \
 
 
 
-# def most_popular_network():   
-#     # Per week 
-#     return spark.sql(
-#     '''
-#         SELECT Network, ROUND(AVG(NetworkCount)) as NetworkCount
-#         FROM
-#             (SELECT Time, Network, COUNT(*) as NetworkCount
-#             FROM crypto_prices
-#             GROUP BY 1, 2
-#             ORDER BY 3 DESC)
-#         GROUP BY 1
-#         ORDER BY 2 DESC
-#     '''
-#     )
+def most_popular_network(df):
+    df.registerTempTable("crypto_prices")   
+
+    # spark.sql(
+    #     '''
+    #     SELECT COUNT(*)
+    #     FROM crypto_prices
+    #     WHERE Date='2022-09-17'
+    #     '''
+    # ).show()
+
+
+    # spark.sql(
+    #     '''
+    #     SELECT COUNT(*)
+    #     FROM crypto_prices
+    #     WHERE Date='2022-09-14'
+    #     '''
+    # ).show()
+
+
+    # Per week 
+    return spark.sql(
+    '''
+        SELECT Network, ROUND(AVG(NetworkCount)) as NetworkCount
+        FROM 
+            (SELECT Date, Hour, Network, COUNT(*) as NetworkCount
+            FROM crypto_prices
+            GROUP BY 1, 2, 3
+            ORDER BY 4 DESC)
+        GROUP BY 1 
+        ORDER BY 2 DESC
+    '''
+    )
 
 
 def list_of_last_week_dates(days = 9):
@@ -69,7 +104,6 @@ def extract_data_for_last_week(sparkDf, last_week_days = list_of_last_week_dates
     df = sparkDf.toPandas()
     df = processing_dates(df)
     df = df[df.Date.isin(last_week_days)]
-
     return df
 
 
@@ -98,9 +132,10 @@ def count_price_change(grouped_df):
         counted_df = pd.concat([counted_df, net_df])
         print(net_df)
     
-    counted_df.reset_index(drop=True, inplace=True)
-    counted_df = counted_df.astype({"PercentageChange": float, "PriceDiff": float})
-
+    # Dataframe can be empty because of the lack of data for the current day
+    if not counted_df.empty:
+        counted_df.reset_index(drop=True, inplace=True)
+        counted_df = counted_df.astype({"PercentageChange": float, "PriceDiff": float})
 
     return counted_df
 
@@ -123,10 +158,8 @@ def count_price_change_driver(df):
 
 
 def count_networks_weekly(df):
-    df_grouped = df.groupby(["Network"]).count()\
-                        .reset_index()[["Network", "Price"]]\
-                        .rename({"Price":"Count"})
-
+    df_for_sum_net_spark = spark.createDataFrame(df)
+    df_grouped = most_popular_network(df_for_sum_net_spark)
     return df_grouped
 
 
@@ -137,7 +170,7 @@ def write_to_parquet(df, destination, partition_by):
 
 
 def process_json_files():
-    cryptoDF = spark.read.json("/mnt/c/Random Projects/gcp-pipeline/data-landing/*")\
+    cryptoDF = spark.read.json(f"{SOURCE_BUCKET}/data/*")\
         .withColumn("Time", to_timestamp(col("Time"),"dd-MM-yyyy HH:mm:ss"))\
         .withColumn("Time", date_trunc("hour", "Time"))
 
@@ -146,26 +179,37 @@ def process_json_files():
 
     last_week_list_for_sum = list_of_last_week_dates(days = 8)
     last_week_df_for_sum = extract_data_for_last_week(cryptoDF, last_week_list_for_sum)
-    df_for_sum_net = count_networks_weekly(last_week_df_for_sum)
+    df_for_sum_net_spark = count_networks_weekly(last_week_df_for_sum)
 
-    df_for_sum_net_spark = spark.createDataFrame(df_for_sum_net)
-    last_hours_price_change_spark = spark.createDataFrame(last_hour_price_change, schema=schema_day)
-    last_days_price_change_spark = spark.createDataFrame(last_week_price_change, schema=schema_week)
+    # print(last_hour_price_change)
+    last_hours_price_change_spark = spark.createDataFrame(last_hour_price_change, schema=schema_day).repartition(4)
+    last_days_price_change_spark = spark.createDataFrame(last_week_price_change, schema=schema_week).repartition(4)
+    last_hours_price_change_spark.where(last_hours_price_change_spark.Network=="Ethereum").show()
+    # # write_to_parquet(df_for_sum_net_spark, f"{TARGET_BUCKET}/summarize", "Network")
+    # write_to_parquet(last_days_price_change_spark, f"{TARGET_BUCKET}/days", "Network")
+    # write_to_parquet(last_hours_price_change_spark, f"{TARGET_BUCKET}/hours", "Network")
+    # last_days_price_change_spark.show()
 
-    write_to_parquet(df_for_sum_net_spark, "/mnt/c/Random Projects/gcp-pipeline/data-prepared/summarize", "Network")
-    write_to_parquet(last_days_price_change_spark, "/mnt/c/Random Projects/gcp-pipeline/data-prepared/daily", "Network")
-    write_to_parquet(last_hours_price_change_spark, "/mnt/c/Random Projects/gcp-pipeline/data-prepared/hourly", "Network")
-    last_days_price_change_spark.show()
 
 
-    test_df = spark.read.parquet("/mnt/c/Random Projects/gcp-pipeline/data-prepared/summarize/*")
-    test_df.show()
-    # df = cryptoDF.toPandas()
+def arg_parser():
+    parser = argparse.ArgumentParser(description="Args to run the job")
+    parser.add_argument("--source-bucket", required=True)
+    parser.add_argument("--target-bucket", required=True)
+    parser.add_argument("--project", required=True)
 
-    # print(df.Network.unique())
+    args = parser.parse_args()
 
-    # cryptoDF.groupBy("Network").agg({"Price": "avg"}).sort()
+    global PROJECT
+    PROJECT = args.project
+
+    global SOURCE_BUCKET
+    SOURCE_BUCKET = args.source_bucket
+
+    global TARGET_BUCKET
+    TARGET_BUCKET = args.target_bucket
 
 
 if __name__ == "__main__":
+    arg_parser()
     process_json_files()
