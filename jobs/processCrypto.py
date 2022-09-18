@@ -71,7 +71,6 @@ def most_popular_network(df):
 def list_of_last_week_dates(days = 9):
     date_today = dt.date.today()
     last_week_days = [date_today - dt.timedelta(days=x) for x in range(days)]
-    print(last_week_days)
     return last_week_days
 
 
@@ -176,6 +175,14 @@ def process_json_files():
 
     write_to_parquet(last_week_price_change_coin_spark, f"{TARGET_BUCKET}/days_coin")
     write_to_parquet(last_hour_price_change_coin_spark, f"{TARGET_BUCKET}/hours_coin")
+
+    # last_hours_price_change_spark.show()
+    # last_hours_price_change_spark.filter(last_hours_price_change_spark.Network == "Ethereum").orderBy("Hour").show()
+    # last_days_price_change_spark.filter(last_days_price_change_spark.Network == "Ethereum").orderBy("Date").show()
+
+    # last_hour_price_change_coin_spark.filter(last_hour_price_change_coin_spark.Name == "Bitcoin").orderBy("Hour").show()
+    # last_week_price_change_coin_spark.filter(last_week_price_change_coin_spark.Name == "Bitcoin").orderBy("Date").show()
+
 
 
 
