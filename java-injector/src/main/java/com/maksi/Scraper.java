@@ -120,8 +120,8 @@ public class Scraper {
         coinData.put("MarketCap", volumeProcessing(marketCap.ownText()));
         coinData.put("Volume", volumeProcessing(volume.ownText()));
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
-        coinData.put("Time", this.testDate.format(formatter));
+        String currentDateTime = this.getCurrentDate();
+        coinData.put("Time", currentDateTime);
         this.finalList.add(coinData);
     }
 

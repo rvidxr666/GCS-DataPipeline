@@ -12,19 +12,15 @@ import java.util.HashMap;
 
 public class Main {
     public static void main(String[] args) throws IOException, InterruptedException {
-        LocalDateTime testDateInitial = LocalDateTime.of(2022, Month.SEPTEMBER, 18, 0, 24);
 
-        for (int i = 0; i < 23; i++) {
-            Scraper scraper = new Scraper(testDateInitial.plusHours(i));
-            ArrayList<HashMap<String, Object>> collectedData = scraper.Parsing();
-            System.out.println(collectedData.size());
-            String path = makePath();
-//            String fileName = makeFileName();
-            String jsonData = toJSON.writeToJson(collectedData);
-//            uploadToGCS.sendFile("marine-catfish-310009", "landing-bucket-zoomcamp", fileName, jsonData);
-            System.out.println("Iteration: " + i);
-            writeLocal(jsonData, path);
-        }
+        Scraper scraper = new Scraper();
+        ArrayList<HashMap<String, Object>> collectedData = scraper.Parsing();
+        System.out.println(collectedData.size());
+//        String path = makePath();
+        String fileName = makeFileName();
+        String jsonData = toJSON.writeToJson(collectedData);
+        uploadToGCS.sendFile("marine-catfish-310009", "landing-bucket-zoomcamp", fileName, jsonData);
+//        writeLocal(jsonData, path);
     }
 
     public static void writeLocal(String jsonData, String path) throws IOException {
