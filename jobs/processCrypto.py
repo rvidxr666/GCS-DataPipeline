@@ -49,6 +49,25 @@ schema_day = StructType([ \
             ])
 
 
+schema_week_coin = StructType([ \
+                StructField("Date",DateType(),True), \
+                StructField("Name",StringType(),True), \
+                StructField("Price",FloatType(),True), \
+                StructField("PercentageChange", FloatType(), True), \
+                StructField("PriceDiff", FloatType(), True)
+            ])
+
+
+schema_day_coin = StructType([ \
+                StructField("Date",DateType(),True), \
+                StructField("Hour",IntegerType(),True), \
+                StructField("Name",StringType(),True), \
+                StructField("Price",FloatType(),True), \
+                StructField("PercentageChange", FloatType(), True), \
+                StructField("PriceDiff", FloatType(), True)
+            ])
+
+
 
 def most_popular_network(df):
     df.registerTempTable("crypto_prices")   
@@ -166,22 +185,24 @@ def process_json_files():
     last_hours_price_change_spark = spark.createDataFrame(last_hour_price_change, schema=schema_day).repartition(4)
     last_days_price_change_spark = spark.createDataFrame(last_week_price_change, schema=schema_week).repartition(4)
 
-    last_hour_price_change_coin_spark = spark.createDataFrame(last_hour_price_change_coin).repartition(4)
-    last_week_price_change_coin_spark = spark.createDataFrame(last_week_price_change_coin).repartition(4)
+    last_hour_price_change_coin_spark = spark.createDataFrame(last_hour_price_change_coin, schema=schema_day_coin)\
+                                                .repartition(4)
+    last_week_price_change_coin_spark = spark.createDataFrame(last_week_price_change_coin, schema=schema_week_coin)\
+                                                .repartition(4)
 
-    write_to_parquet(df_for_sum_net_spark, f"{TARGET_BUCKET}/summarize_net")
-    write_to_parquet(last_days_price_change_spark, f"{TARGET_BUCKET}/days_net")
-    write_to_parquet(last_hours_price_change_spark, f"{TARGET_BUCKET}/hours_net")
+    # write_to_parquet(df_for_sum_net_spark, f"{TARGET_BUCKET}/summarize_net")
+    # write_to_parquet(last_days_price_change_spark, f"{TARGET_BUCKET}/days_net")
+    # write_to_parquet(last_hours_price_change_spark, f"{TARGET_BUCKET}/hours_net")
 
-    write_to_parquet(last_week_price_change_coin_spark, f"{TARGET_BUCKET}/days_coin")
-    write_to_parquet(last_hour_price_change_coin_spark, f"{TARGET_BUCKET}/hours_coin")
+    # write_to_parquet(last_week_price_change_coin_spark, f"{TARGET_BUCKET}/days_coin")
+    # write_to_parquet(last_hour_price_change_coin_spark, f"{TARGET_BUCKET}/hours_coin")
 
     # last_hours_price_change_spark.show()
-    # last_hours_price_change_spark.filter(last_hours_price_change_spark.Network == "Ethereum").orderBy("Hour").show()
-    # last_days_price_change_spark.filter(last_days_price_change_spark.Network == "Ethereum").orderBy("Date").show()
+    last_hours_price_change_spark.filter(last_hours_price_change_spark.Network == "Ethereum").orderBy("Hour").show()
+    last_days_price_change_spark.filter(last_days_price_change_spark.Network == "Ethereum").orderBy("Date").show()
 
-    # last_hour_price_change_coin_spark.filter(last_hour_price_change_coin_spark.Name == "Bitcoin").orderBy("Hour").show()
-    # last_week_price_change_coin_spark.filter(last_week_price_change_coin_spark.Name == "Bitcoin").orderBy("Date").show()
+    last_hour_price_change_coin_spark.filter(last_hour_price_change_coin_spark.Name == "Bitcoin").orderBy("Hour").show()
+    last_week_price_change_coin_spark.filter(last_week_price_change_coin_spark.Name == "Bitcoin").orderBy("Date").show()
 
 
 
