@@ -5,3 +5,6 @@ venv
 *.parquet
 *.parquet.crc
 *.json
+airflow/logs
+airflow/plugins 
+dags/__pycache__

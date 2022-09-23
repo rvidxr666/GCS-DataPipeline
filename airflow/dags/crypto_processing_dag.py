@@ -5,6 +5,7 @@ from airflow import DAG
 from airflow.utils.dates import days_ago
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
+from datetime import datetime
 
 from google.cloud import storage
 from airflow.providers.google.cloud.operators.bigquery import BigQueryCreateExternalTableOperator
@@ -22,14 +23,14 @@ BIGQUERY_DATASET = os.environ.get("BIGQUERY_DATASET", 'trips_data_all')
 
 default_args = {
     "owner": "airflow",
-    "start_date": days_ago(1),
     "depends_on_past": False,
-    "retries": 1,
+    'start_date': datetime(2015, 12, 1),
+    "retries": 1
 }
 
 # NOTE: DAG declaration - using a Context Manager (an implicit way)
 with DAG(
-    dag_id="data_ingestion_gcs_dag",
+    dag_id="data_processing_dag",
     schedule_interval="@daily",
     default_args=default_args,
     catchup=False,
@@ -37,8 +38,8 @@ with DAG(
     tags=['dtc-de'],
 ) as dag:
 
-    download_dataset_task = BashOperator(
-        task_id="test_airflow_locally",
-        bash_command=f"echo HelloWorld"
+    process_crypto_job = BashOperator(
+        task_id="run_dataprocessing_job",
+        bash_command=f"python /opt/airflow/jobs/processCrypto.py marine-catfish-310009 gs://landing-bucket-zoomcamp gs://prepared-bucket-zoomcamp"
     )
 

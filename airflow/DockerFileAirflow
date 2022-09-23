@@ -1,0 +1,66 @@
+FROM apache/airflow:2.2.3
+
+ENV AIRFLOW_HOME=/opt/airflow
+
+USER root
+RUN apt-get update -qq && apt-get install vim -qqq &&\ 
+    apt-get install wget tar
+# git gcc g++ -qqq
+
+ARG CLOUD_SDK_VERSION=322.0.0
+ENV GCLOUD_HOME=/home/google-cloud-sdk
+ENV SPARK_INSTALL=${HOME}/spark
+ENV JAVA_INSTALL=${HOME}/java
+
+ENV PATH="${GCLOUD_HOME}/bin/:${PATH}"
+
+# Installing java
+RUN mkdir -p ${JAVA_INSTALL} && cd ${JAVA_INSTALL} &&\
+    wget https://download.java.net/java/GA/jdk11/9/GPL/openjdk-11.0.2_linux-x64_bin.tar.gz &&\
+    tar xzfv openjdk-11.0.2_linux-x64_bin.tar.gz &&\
+    rm openjdk-11.0.2_linux-x64_bin.tar.gz
+
+ENV JAVA_HOME=${JAVA_INSTALL}/jdk-11.0.2
+
+# Installing Spark
+RUN mkdir -p ${SPARK_INSTALL} && cd ${SPARK_INSTALL} &&\
+    wget https://dlcdn.apache.org/spark/spark-3.3.0/spark-3.3.0-bin-hadoop3.tgz && \
+    tar xzfv spark-3.3.0-bin-hadoop3.tgz && \
+    rm spark-3.3.0-bin-hadoop3.tgz
+
+ENV SPARK_HOME=${SPARK_INSTALL}/spark-3.3.0-bin-hadoop3
+ENV PATH=${JAVA_HOME}/bin:${SPARK_HOME}/bin:${PATH}
+
+RUN cd $SPARK_HOME/jars &&\
+    curl https://storage.googleapis.com/hadoop-lib/gcs/gcs-connector-hadoop3-latest.jar\ 
+    --output gcs-connector-hadoop3-latest.jar
+ 
+RUN pyspark --help
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
+
+# Ref: https://airflow.apache.org/docs/docker-stack/recipes.html
+
+RUN DOWNLOAD_URL="https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${CLOUD_SDK_VERSION}-linux-x86_64.tar.gz" \
+    && TMP_DIR="$(mktemp -d)" \
+    && curl -fL "${DOWNLOAD_URL}" --output "${TMP_DIR}/google-cloud-sdk.tar.gz" \
+    && mkdir -p "${GCLOUD_HOME}" \
+    && tar xzf "${TMP_DIR}/google-cloud-sdk.tar.gz" -C "${GCLOUD_HOME}" --strip-components=1 \
+    && "${GCLOUD_HOME}/install.sh" \
+       --bash-completion=false \
+       --path-update=false \
+       --usage-reporting=false \
+       --quiet \
+    && rm -rf "${TMP_DIR}" \
+    && gcloud --version
+
+WORKDIR $AIRFLOW_HOME
+
+COPY scripts scripts
+RUN chmod +x scripts
+
+ENV PYTHONPATH=$SPARK_HOME/python:$SPARK_HOME/python/build:$SPARK_HOME/python/lib/py4j-0.10.9.5-src.zip:$PYTHONPATH
+
+USER $AIRFLOW_UID

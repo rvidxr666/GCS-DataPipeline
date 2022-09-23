@@ -1,3 +1,2 @@
 pandas
-pyspark
 apache-airflow-providers-google
