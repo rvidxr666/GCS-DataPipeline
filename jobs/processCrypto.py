@@ -14,19 +14,17 @@ PROJECT = ""
 SOURCE_BUCKET = ""
 TARGET_BUCKET = ""
 
-conf = pyspark.SparkConf().setAll([
-                                   ("fs.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem"),
-                                   ("fs.AbstractFileSystem.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS"),
-                                   ("fs.gs.project.id",f"{PROJECT}"),
-                                   ("fs.gs.auth.service.account.enable", "true"),
-                                   ("fs.gs.auth.service.account.json.keyfile", "/home/maksi/.google/credentials/google_credentials.json")                                   
-                                ])
+# conf = pyspark.SparkConf().setAll([
+#                                    ("fs.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem"),
+#                                    ("fs.AbstractFileSystem.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS"),
+#                                    ("fs.gs.project.id",f"{PROJECT}"),
+#                                    ("fs.gs.auth.service.account.enable", "true"),
+#                                    ("fs.gs.auth.service.account.json.keyfile", "/home/maksi/.google/credentials/google_credentials.json")                                   
+#                                 ])
 
 
-spark = SparkSession.builder \
-    .config(conf=conf)\
-    .master("local[*]") \
-    .appName("test") \
+spark = SparkSession.builder\
+    .appName("crypto-processing") \
     .getOrCreate()
 
 
@@ -170,7 +168,7 @@ def write_to_parquet(df, destination):
 
 
 def process_json_files():
-    cryptoDF = spark.read.json(f"/mnt/c/Random Projects/gcp-pipeline/data-landing/*")\
+    cryptoDF = spark.read.json(f"{SOURCE_BUCKET}/*")\
         .withColumn("Time", to_timestamp(col("Time"),"dd-MM-yyyy HH:mm:ss"))\
         .withColumn("Time", date_trunc("hour", "Time"))
 
@@ -190,40 +188,40 @@ def process_json_files():
     last_week_price_change_coin_spark = spark.createDataFrame(last_week_price_change_coin, schema=schema_week_coin)\
                                                 .repartition(4)
 
-    # write_to_parquet(df_for_sum_net_spark, f"{TARGET_BUCKET}/summarize_net")
-    # write_to_parquet(last_days_price_change_spark, f"{TARGET_BUCKET}/days_net")
-    # write_to_parquet(last_hours_price_change_spark, f"{TARGET_BUCKET}/hours_net")
+    write_to_parquet(df_for_sum_net_spark, f"{TARGET_BUCKET}/summarize_net")
+    write_to_parquet(last_days_price_change_spark, f"{TARGET_BUCKET}/days_net")
+    write_to_parquet(last_hours_price_change_spark, f"{TARGET_BUCKET}/hours_net")
 
-    # write_to_parquet(last_week_price_change_coin_spark, f"{TARGET_BUCKET}/days_coin")
-    # write_to_parquet(last_hour_price_change_coin_spark, f"{TARGET_BUCKET}/hours_coin")
+    write_to_parquet(last_week_price_change_coin_spark, f"{TARGET_BUCKET}/days_coin")
+    write_to_parquet(last_hour_price_change_coin_spark, f"{TARGET_BUCKET}/hours_coin")
 
     # last_hours_price_change_spark.show()
-    last_hours_price_change_spark.filter(last_hours_price_change_spark.Network == "Ethereum").orderBy("Hour").show()
-    last_days_price_change_spark.filter(last_days_price_change_spark.Network == "Ethereum").orderBy("Date").show()
+    # last_hours_price_change_spark.filter(last_hours_price_change_spark.Network == "Ethereum").orderBy("Hour").show()
+    # last_days_price_change_spark.filter(last_days_price_change_spark.Network == "Ethereum").orderBy("Date").show()
 
-    last_hour_price_change_coin_spark.filter(last_hour_price_change_coin_spark.Name == "Bitcoin").orderBy("Hour").show()
-    last_week_price_change_coin_spark.filter(last_week_price_change_coin_spark.Name == "Bitcoin").orderBy("Date").show()
+    # last_hour_price_change_coin_spark.filter(last_hour_price_change_coin_spark.Name == "Bitcoin").orderBy("Hour").show()
+    # last_week_price_change_coin_spark.filter(last_week_price_change_coin_spark.Name == "Bitcoin").orderBy("Date").show()
 
 
 
 
 def arg_parser():
-    parser = argparse.ArgumentParser(description="Args to run the job")
+    # parser = argparse.ArgumentParser(description="Args to run the job")
 
-    parser.add_argument("--source-bucket", required=True)
-    parser.add_argument("--target-bucket", required=True)
-    parser.add_argument("--project", required=True)
+    # parser.add_argument("--source-bucket", required=True)
+    # parser.add_argument("--target-bucket", required=True)
+    # parser.add_argument("--project", required=True)
 
-    args = parser.parse_args()
-
-    global PROJECT
-    PROJECT = args.project
+    # args = parser.parse_args()
 
     global SOURCE_BUCKET
-    SOURCE_BUCKET = args.source_bucket
+    SOURCE_BUCKET = sys.argv[0]
 
     global TARGET_BUCKET
-    TARGET_BUCKET = args.target_bucket
+    TARGET_BUCKET = sys.argv[1]
+
+    # global PROJECT
+    # PROJECT = sys.argv[2]
 
 
 if __name__ == "__main__":
