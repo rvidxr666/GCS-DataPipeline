@@ -10,20 +10,29 @@ from pyspark.sql.types import StructType, StructField, StringType, IntegerType, 
 
 import datetime as dt
 
-PROJECT = ""
-SOURCE_BUCKET = ""
-TARGET_BUCKET = ""
+# PROJECT = ""
+# SOURCE_BUCKET = ""
+# TARGET_BUCKET = ""
 
-# conf = pyspark.SparkConf().setAll([
-#                                    ("fs.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem"),
-#                                    ("fs.AbstractFileSystem.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS"),
-#                                    ("fs.gs.project.id",f"{PROJECT}"),
-#                                    ("fs.gs.auth.service.account.enable", "true"),
-#                                    ("fs.gs.auth.service.account.json.keyfile", "/home/maksi/.google/credentials/google_credentials.json")                                   
-#                                 ])
+PROJECT = sys.argv[1]
+SOURCE_BUCKET = sys.argv[2]
+TARGET_BUCKET = sys.argv[3]
+
+print(PROJECT)
+print(SOURCE_BUCKET)
+print(TARGET_BUCKET)
+
+conf = pyspark.SparkConf().setAll([
+                                   ("fs.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem"),
+                                   ("fs.AbstractFileSystem.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS"),
+                                   ("fs.gs.project.id",f"{PROJECT}"),
+                                   ("fs.gs.auth.service.account.enable", "true"),
+                                   ("fs.gs.auth.service.account.json.keyfile", "/home/maksi/.google/credentials/google_credentials.json")                                   
+                                ])
 
 
 spark = SparkSession.builder\
+    .master("local[*]")\
     .appName("crypto-processing") \
     .getOrCreate()
 
@@ -205,25 +214,25 @@ def process_json_files():
 
 
 
-def arg_parser():
-    # parser = argparse.ArgumentParser(description="Args to run the job")
+# def arg_parser():
+#     # parser = argparse.ArgumentParser(description="Args to run the job")
 
-    # parser.add_argument("--source-bucket", required=True)
-    # parser.add_argument("--target-bucket", required=True)
-    # parser.add_argument("--project", required=True)
+#     # parser.add_argument("--source-bucket", required=True)
+#     # parser.add_argument("--target-bucket", required=True)
+#     # parser.add_argument("--project", required=True)
 
-    # args = parser.parse_args()
+#     # args = parser.parse_args()
 
-    global SOURCE_BUCKET
-    SOURCE_BUCKET = sys.argv[0]
+#     global SOURCE_BUCKET
+#     SOURCE_BUCKET = sys.argv[0]
 
-    global TARGET_BUCKET
-    TARGET_BUCKET = sys.argv[1]
+#     global TARGET_BUCKET
+#     TARGET_BUCKET = sys.argv[1]
 
-    # global PROJECT
-    # PROJECT = sys.argv[2]
+#     # global PROJECT
+#     # PROJECT = sys.argv[2]
 
 
 if __name__ == "__main__":
-    arg_parser()
+    # arg_parser()
     process_json_files()
