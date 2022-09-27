@@ -191,19 +191,19 @@ def process_json_files():
     last_week_price_change_coin_spark = spark.createDataFrame(last_week_price_change_coin, schema=schema_week_coin)\
                                                 .repartition(4)
 
-    # write_to_parquet(df_for_sum_net_spark, f"{TARGET_BUCKET}/summarize_net")
-    # write_to_parquet(last_days_price_change_spark, f"{TARGET_BUCKET}/days_net")
-    # write_to_parquet(last_hours_price_change_spark, f"{TARGET_BUCKET}/hours_net")
+    write_to_parquet(df_for_sum_net_spark, f"{TARGET_BUCKET}/summarize_net")
+    write_to_parquet(last_days_price_change_spark, f"{TARGET_BUCKET}/days_net")
+    write_to_parquet(last_hours_price_change_spark, f"{TARGET_BUCKET}/hours_net")
 
-    # write_to_parquet(last_week_price_change_coin_spark, f"{TARGET_BUCKET}/days_coin")
-    # write_to_parquet(last_hour_price_change_coin_spark, f"{TARGET_BUCKET}/hours_coin")
+    write_to_parquet(last_week_price_change_coin_spark, f"{TARGET_BUCKET}/days_coin")
+    write_to_parquet(last_hour_price_change_coin_spark, f"{TARGET_BUCKET}/hours_coin")
 
-    last_hours_price_change_spark.show()
-    last_hours_price_change_spark.filter(last_hours_price_change_spark.Network == "Ethereum").orderBy("Hour").show()
-    last_days_price_change_spark.filter(last_days_price_change_spark.Network == "Ethereum").orderBy("Date").show()
+    # last_hours_price_change_spark.show()
+    # last_hours_price_change_spark.filter(last_hours_price_change_spark.Network == "Ethereum").orderBy("Hour").show()
+    # last_days_price_change_spark.filter(last_days_price_change_spark.Network == "Ethereum").orderBy("Date").show()
 
-    last_hour_price_change_coin_spark.filter(last_hour_price_change_coin_spark.Name == "Bitcoin").orderBy("Hour").show()
-    last_week_price_change_coin_spark.filter(last_week_price_change_coin_spark.Name == "Bitcoin").orderBy("Date").show()
+    # last_hour_price_change_coin_spark.filter(last_hour_price_change_coin_spark.Name == "Bitcoin").orderBy("Hour").show()
+    # last_week_price_change_coin_spark.filter(last_week_price_change_coin_spark.Name == "Bitcoin").orderBy("Date").show()
 
 
 
