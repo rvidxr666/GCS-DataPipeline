@@ -1,6 +1,17 @@
 const router = require("express").Router()
 
 
+const {BigQuery} = require("@google-cloud/bigquery")
+
+const bigquery = new BigQuery({
+    projectId: 'marine-catfish-310009', // how to ref it properly
+    keyFilename: '/home/maksi/.google/credentials/google_credentials.json'
+})
+
+const location = "EU"
+const projectID = "marine-catfish-310009"
+const dataset = "pipeline_dataset"
+
 // request with the name (Crypto network) and period (Hour, Date)
 router.route("/api").post(async (req, res) => {
     const network = req.body.name 
@@ -15,17 +26,41 @@ router.route("/api").post(async (req, res) => {
     })
 })
 
-const queryBigQuery = async (network, period) => {
-    const {BigQuery} = require("@google-cloud/bigquery")
 
-    const bigquery = new BigQuery({
-        projectId: 'marine-catfish-310009', // how to ref it properly
-        keyFilename: '/home/maksi/.google/credentials/google_credentials.json'
+router.route("/list").get(async (req, res) => {
+    const query = `
+        SELECT DISTINCT Network
+        FROM ${projectID}.${dataset}.dates_net
+    `
+    const options = {
+        query: query
+    }
+
+    const [job] = await bigquery.createQueryJob(options)
+    const [rows] = await job.getQueryResults()
+
+    res.json({
+        "data": rows
     })
+})
 
-    const location = "EU"
-    const projectID = "marine-catfish-310009"
-    const dataset = "pipeline_dataset"
+
+router.route("/list").get(async () => {
+    const query = `
+        SELECT DISTINCT Network
+        FROM ${projectID}.${dataset}.dates_net
+    `
+    const options = {
+        query: query
+    }
+
+    const [job] = await bigquery.createQueryJob(options)
+    const [rows] = await job.getQueryResults()
+
+    return rows
+})
+
+const queryBigQuery = async (network, period) => {
 
     const query = `
         SELECT ${period}, Network, Price, PriceDiff, PercentageChange
