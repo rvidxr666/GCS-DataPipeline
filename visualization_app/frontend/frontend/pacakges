@@ -1,0 +1,6 @@
+bootstrap
+react-router-dom
+react-chartjs-2 
+chart.js
+axios
+chartjs-plugin-datalabels
