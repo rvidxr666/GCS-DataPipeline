@@ -20,8 +20,7 @@ export default class Graph extends Component  {
             }
             
         })
-        // console.log(labels)
-        // return labels.toString()
+
         return labels
     }
     
@@ -33,8 +32,6 @@ export default class Graph extends Component  {
             }
             
         }
-        // console.log(labels)
-        // return labels.toString()
 
     generatingValues() {
 
@@ -71,7 +68,7 @@ export default class Graph extends Component  {
               }
             ]
         }
-        
+
         return state
     }
 

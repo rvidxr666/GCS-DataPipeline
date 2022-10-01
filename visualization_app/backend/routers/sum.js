@@ -1,6 +1,5 @@
 const router = require("express").Router()
 
-
 // request with the name (Crypto name) and period (Hour, Date)
 router.route("/api").get(async (req, res) => {
 
@@ -33,8 +32,6 @@ const queryBigQuery = async () => {
     const [job] = await bigquery.createQueryJob(options)
     const [rows] = await job.getQueryResults()
 
-
-    // rows.forEach(row => console.log(row))
 
     return rows
 
