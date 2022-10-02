@@ -1,0 +1,16 @@
+services:
+  frontend:
+    image: frontend:latest
+    build: ./frontend/frontend
+    ports: 
+    - "3000:80"
+    depends_on:
+      - backend
+
+  backend:
+    image: backend:latest
+    build: ./backend
+    ports: 
+    - "5000:5000"
+    volumes:
+      - /home/maksi/.google/credentials/google_credentials.json:/home/maksi/.google/credentials/google_credentials.json
