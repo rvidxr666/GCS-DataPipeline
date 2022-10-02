@@ -91,12 +91,12 @@ public class Scraper {
         HashMap<String, Object> coinData = new HashMap<>();
 //        Document document = Jsoup.connect(url).get();
         Document document = this.Connect(url);
-        String name = document.select("h2[class=\"sc-1q9q90x-0 jCInrl h1\"]").get(0).ownText();
+        String name = document.select("h2[class=\"sc-1m04yzc-0 ftVDyZ h1\"] span").get(0).ownText();
 
         coinData.put("Name", name);
         coinData.put("Tag", document.select("small[class=\"nameSymbol\"]").get(0).ownText());
 
-        String priceRaw = document.select("div[class=\"sc-16r8icm-0 kjciSH priceTitle\"] div").get(0).text();
+        String priceRaw = document.select("div[class=\"sc-1prm8qw-0 cyZVgY priceTitle\"] div").get(0).text();
         Object priceCleaned = this.priceProcessing(priceRaw);
 
         coinData.put("Price", priceCleaned);
