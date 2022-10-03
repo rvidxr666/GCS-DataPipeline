@@ -61,7 +61,7 @@ x-airflow-common:
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
     AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth'
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
-    GCP_PROJECT_ID: "marine-catfish-310009" 
+    GCP_PROJECT_ID: "marine-catfish-310009" # to be changed
     GCP_GCS_BUCKET: "dtc_data_lake_marine-catfish-310009"
     BIGQUERY_DATASET: "trips_data_all"
     GOOGLE_APPLICATION_CREDENTIALS: /.google/credentials/google_credentials.json
@@ -70,6 +70,8 @@ x-airflow-common:
     POSTGRES_PASSWORD: "root"
     POSTGRES_DB: "inject_db"
     POSTGRES_PORT: 5433
+    GCP_LANDING_BUCKET: landing-bucket-terraform # change to terraform later
+    GCP_PREPARED_BUCKET: prepared-bucket-terraform # change to terraform later
   volumes:
     - ./dags:/opt/airflow/dags
     - ./logs:/opt/airflow/logs
