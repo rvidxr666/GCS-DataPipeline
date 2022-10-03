@@ -59,26 +59,26 @@ resource "google_storage_bucket" "prepared-bucket" {
 
 resource "google_storage_bucket_object" "data_folder" {
   for_each = var.tables_directories
-  source = "./sample_parquet/test-spark/spark.parquet"
+  source   = "./sample_parquet/test-spark/spark.parquet"
   name     = "${each.value}/test.parquet"
   bucket   = google_storage_bucket.prepared-bucket.name
 }
 
 
 resource "google_bigquery_dataset" "pipeline-dataset" {
-  dataset_id                  = "pipeline_dataset_terraform"
-  friendly_name               = "pipeline_dataset_terraform"
-  description                 = "Pipeline Dataset"
-  location                    = "EU"
+  dataset_id    = "pipeline_dataset_terraform"
+  friendly_name = "pipeline_dataset_terraform"
+  description   = "Pipeline Dataset"
+  location      = "EU"
 }
 
 
 resource "google_bigquery_table" "external_data_table" {
-  dataset_id = google_bigquery_dataset.pipeline-dataset.dataset_id
+  dataset_id          = google_bigquery_dataset.pipeline-dataset.dataset_id
   deletion_protection = false
-  for_each = var.tables_directories
-  table_id   = each.value
-  schema = var.schema
+  for_each            = var.tables_directories
+  table_id            = each.value
+  schema              = var.schema
 
   external_data_configuration {
     autodetect    = true
@@ -123,7 +123,7 @@ resource "null_resource" "airflow-job" {
     command     = "docker-compose -f ../airflow/docker-compose.yaml down"
     working_dir = path.module
   }
-  
+
   depends_on = [
     google_storage_bucket_object.data_folder,
     google_storage_bucket.landing-bucket
