@@ -15,12 +15,12 @@ variable "region" {
 }
 
 variable "tables_directories" {
-  type = set(string)
+  type    = set(string)
   default = ["dates_coin", "dates_net", "hours_coin", "hours_net", "summarize_net"]
 }
 
 variable "schema" {
-    default = <<EOF
+  default = <<EOF
 [
   {
     "name": "Date",
