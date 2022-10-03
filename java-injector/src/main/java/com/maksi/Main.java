@@ -16,11 +16,11 @@ public class Main {
         Scraper scraper = new Scraper();
         ArrayList<HashMap<String, Object>> collectedData = scraper.Parsing();
         System.out.println(collectedData.size());
-        String path = makePath();
+//        String path = makePath();
         String fileName = makeFileName();
         String jsonData = toJSON.writeToJson(collectedData);
-//        uploadToGCS.sendFile("marine-catfish-310009", "landing-bucket-zoomcamp", fileName, jsonData);
-        writeLocal(jsonData, path);
+        uploadToGCS.sendFile(fileName, jsonData);
+//        writeLocal(jsonData, path);
     }
 
     public static void writeLocal(String jsonData, String path) throws IOException {

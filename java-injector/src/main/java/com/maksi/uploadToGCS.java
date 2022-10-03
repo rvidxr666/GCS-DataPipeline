@@ -14,7 +14,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 public class uploadToGCS {
-    public static void sendFile(String projectID, String bucketName, String filename, String data) throws IOException {
+    public static void sendFile(String filename, String data) throws IOException {
+        String bucketName = System.getenv("landing-bucket");
+        String projectID = System.getenv("project-id");
         Storage storage = StorageOptions.newBuilder().setProjectId(projectID).build().getService();
         Bucket bucket = storage.get(bucketName);
         Blob blob = bucket.create("data/" + filename, data.getBytes(StandardCharsets.UTF_8),
