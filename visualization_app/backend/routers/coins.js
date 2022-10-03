@@ -1,16 +1,17 @@
 const router = require("express").Router()
 
+const location = "EU"
+const projectID = process.env.projectID // Project ID
+const dataset = process.env.DatasetID  // BigQuuery Dataset
+const keyPath =   "/home/maksi/.google/credentials/google_credentials.json" // KeyPath
+
 // BigQuery client
 const {BigQuery} = require("@google-cloud/bigquery")
 
 const bigquery = new BigQuery({
-    projectId: 'marine-catfish-310009', // how to ref it properly
-    keyFilename: '/home/maksi/.google/credentials/google_credentials.json'
+    projectId: projectID, // how to ref it properly
+    keyFilename: keyPath
 })
-
-const location = "EU"
-const projectID = "marine-catfish-310009"
-const dataset = "pipeline_dataset"
 
 // request with the name (Crypto name) and period (Hour, Date)
 router.route("/api").post(async (req, res) => {
