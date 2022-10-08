@@ -10,22 +10,6 @@ resource "google_project_iam_member" "gcpdiag-service-account-role" {
 }
 
 
-# resource "google_cloud_run_service" "java-injector" {
-#     name     = "java-injector-terraform"
-#     location = var.region
-#     template {
-#       spec {
-#             containers {
-#                 image = "gcr.io/marine-catfish-310009/java-injector/java-injector"
-#             }
-#       }
-#     }
-#     traffic {
-#       percent         = 100
-#       latest_revision = true
-#     }
-# }
-
 resource "google_storage_bucket" "landing-bucket" {
   name          = "landing-bucket-terraform"
   location      = "EU"

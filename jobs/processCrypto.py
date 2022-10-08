@@ -119,7 +119,7 @@ def count_price_change(grouped_df, calculation_var="Network"):
 
         for tup in net_df.itertuples():
             curr_tup_index = tup.Index
-            # print(curr_tup_index)
+
             if curr_tup_index == 0:
                 net_df.loc[curr_tup_index, "PercentageChange"] = None
                 net_df.loc[curr_tup_index,"PriceDiff"] = None
@@ -129,9 +129,8 @@ def count_price_change(grouped_df, calculation_var="Network"):
             percentage = (tup.Price / prev_tup_price - 1) * 100
             net_df.loc[curr_tup_index, "PercentageChange"] = percentage
             net_df.loc[curr_tup_index, "PriceDiff"] = tup.Price - prev_tup_price
-            # print(prev_tup_price)
+
         counted_df = pd.concat([counted_df, net_df])
-        # print(net_df)
     
     # Dataframe can be empty because of the lack of data for the current day
     if not counted_df.empty:
@@ -198,35 +197,6 @@ def process_json_files():
     write_to_parquet(last_week_price_change_coin_spark, f"{TARGET_BUCKET}/dates_coin")
     write_to_parquet(last_hour_price_change_coin_spark, f"{TARGET_BUCKET}/hours_coin")
 
-    # last_hours_price_change_spark.show()
-    # last_hours_price_change_spark.filter(last_hours_price_change_spark.Network == "Ethereum").orderBy("Hour").show()
-    # last_days_price_change_spark.filter(last_days_price_change_spark.Network == "Ethereum").orderBy("Date").show()
-
-    # last_hour_price_change_coin_spark.filter(last_hour_price_change_coin_spark.Name == "Bitcoin").orderBy("Hour").show()
-    # last_week_price_change_coin_spark.filter(last_week_price_change_coin_spark.Name == "Bitcoin").orderBy("Date").show()
-
-
-
-
-# def arg_parser():
-#     # parser = argparse.ArgumentParser(description="Args to run the job")
-
-#     # parser.add_argument("--source-bucket", required=True)
-#     # parser.add_argument("--target-bucket", required=True)
-#     # parser.add_argument("--project", required=True)
-
-#     # args = parser.parse_args()
-
-#     global SOURCE_BUCKET
-#     SOURCE_BUCKET = sys.argv[0]
-
-#     global TARGET_BUCKET
-#     TARGET_BUCKET = sys.argv[1]
-
-#     # global PROJECT
-#     # PROJECT = sys.argv[2]
-
 
 if __name__ == "__main__":
-    # arg_parser()
     process_json_files()
