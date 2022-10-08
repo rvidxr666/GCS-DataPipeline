@@ -154,7 +154,7 @@ resource "null_resource" "java-injector-job" {
 resource "google_cloud_scheduler_job" "injector-trigger-job" {
   name        = "injector-trigger-job-terraform"
   description = "trigger java injector job"
-  schedule    = "40 * * * *"
+  schedule    = "30 * * * *"
   time_zone   = "Europe/Warsaw"
   region      = var.region
 

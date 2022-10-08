@@ -32,7 +32,7 @@ default_args = {
 # NOTE: DAG declaration - using a Context Manager (an implicit way)
 with DAG(
     dag_id="data_processing_dag",
-    schedule_interval="@daily",
+    schedule_interval="50 * * * *",
     default_args=default_args,
     catchup=False,
     max_active_runs=1,
