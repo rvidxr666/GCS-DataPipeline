@@ -72,7 +72,7 @@ export default class Coin extends Component {
                     <p>Please Complete the Following information to generate the graph</p>
                     <form onSubmit={this.onSubmit} align="center" class="form-container">
                         <div className="mb-3"> 
-                        <label>Name of the Cryptocurrency: </label>
+                        <label>Name of the Network: </label>
                         <select ref="userInput"
                             required
                             className="form-control"
