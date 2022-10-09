@@ -16,8 +16,8 @@ The principle of work is as follows:
 ## Architecture Visualization 
 ![architecture](https://github.com/rvidxr666/GCS-DataPipeline/blob/master/images/architecture.jpg?raw=true)
 
-# Final Result
-
+## Final Result
+![result](https://github.com/rvidxr666/GCS-DataPipeline/blob/master/images/demonstration.gif?raw=true)
 <!-- ### Coin price change last 7 days
 ![result1](https://github.com/rvidxr666/GCS-DataPipeline/blob/master/images/coin-result.png?raw=true)
 ### Network price change last 7 days
