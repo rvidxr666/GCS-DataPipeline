@@ -17,6 +17,10 @@ The principle of work is as follows:
 ![architecture](https://github.com/rvidxr666/GCS-DataPipeline/blob/master/images/architecture.jpg?raw=true)
 
 # Final Result
+
+### Coin price change last 7 days
 ![result1](https://github.com/rvidxr666/GCS-DataPipeline/blob/master/images/coin-result.png?raw=true)
+### Network price change last 7 days
 ![result2](https://github.com/rvidxr666/GCS-DataPipeline/blob/master/images/net-result.png?raw=true)
+### Count of cryptocurrencies per Network
 ![result3](https://github.com/rvidxr666/GCS-DataPipeline/blob/master/images/net-summary.png?raw=true)
