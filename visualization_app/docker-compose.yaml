@@ -13,7 +13,7 @@ services:
     ports: 
     - "5000:5000"
     volumes:
-      - /home/maksi/.google/credentials/google_credentials.json:/home/maksi/.google/credentials/google_credentials.json
+      - ~/.google/credentials/google_credentials.json:/home/maksi/.google/credentials/google_credentials.json
     environment:
       projectID: "marine-catfish-310009" # to change
       DatasetID: "pipeline_dataset_terraform" 

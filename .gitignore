@@ -7,4 +7,4 @@ venv
 *.json
 airflow/logs
 airflow/plugins 
-dags/__pycache__
+airflow/dags/__pycache__

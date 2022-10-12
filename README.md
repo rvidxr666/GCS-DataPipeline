@@ -16,6 +16,12 @@ The principle of work is as follows:
 ## Architecture Visualization 
 ![architecture](https://github.com/rvidxr666/GCS-DataPipeline/blob/master/images/architecture.jpg?raw=true)
 
+## How to Run
+1. Make sure that you have **terraform**, **docker**, **docker-compose** installed on your machine. If not please install all of them
+2. Store you GCP credentials .json file under the following path **~/.google/credentials/google_credentials.json**
+3. Access the **visualization_app/docker-compose.yaml** and change the **projectID** field to your project ID. Do the same with the **airflow/docker-compose.yaml**
+4. Access the **terraform/** directory and run ```terraform apply```, it will deploy all the infrastructure for you automatically
+
 ## Final Result
 ![result](https://github.com/rvidxr666/GCS-DataPipeline/blob/master/images/demonstration.gif?raw=true)
 <!-- ### Coin price change last 7 days

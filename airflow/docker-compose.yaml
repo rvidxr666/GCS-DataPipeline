@@ -70,8 +70,10 @@ x-airflow-common:
     POSTGRES_PASSWORD: "root"
     POSTGRES_DB: "inject_db"
     POSTGRES_PORT: 5433
-    GCP_LANDING_BUCKET: landing-bucket-terraform # change to terraform later
-    GCP_PREPARED_BUCKET: prepared-bucket-terraform # change to terraform later
+    GCP_LANDING_BUCKET: landing-bucket-terraform
+    GCP_PREPARED_BUCKET: prepared-bucket-terraform 
+    # GCP_LANDING_BUCKET: landing-bucket-zoomcamp
+    # GCP_PREPARED_BUCKET: prepared-bucket-zoomcamp
   volumes:
     - ./dags:/opt/airflow/dags
     - ./logs:/opt/airflow/logs
